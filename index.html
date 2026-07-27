@@ -449,7 +449,108 @@ totalHoras.toString().padStart(2,'0')
 totalMinutos.toString().padStart(2,'0');
 
 }
+function exportarRespaldo(){
 
+let datos = {
+
+perfil:{
+
+nombre:
+localStorage.getItem("nombre"),
+
+cedula:
+localStorage.getItem("cedula"),
+
+area:
+localStorage.getItem("area"),
+
+ciudad:
+localStorage.getItem("ciudad")
+
+},
+
+registros: registros
+
+};
+
+let contenido =
+JSON.stringify(datos,null,2);
+
+let blob =
+new Blob(
+[contenido],
+{type:"application/json"}
+);
+
+let enlace =
+document.createElement("a");
+
+enlace.href =
+URL.createObjectURL(blob);
+
+enlace.download =
+"horas_extras_respaldo.json";
+
+document.body.appendChild(enlace);
+
+enlace.click();
+
+document.body.removeChild(enlace);
+
+}
+
+function importarRespaldo(event){
+
+let archivo =
+event.target.files[0];
+
+if(!archivo)return;
+
+let lector =
+new FileReader();
+
+lector.onload = function(e){
+
+let datos =
+JSON.parse(e.target.result);
+
+localStorage.setItem(
+"nombre",
+datos.perfil.nombre || ""
+);
+
+localStorage.setItem(
+"cedula",
+datos.perfil.cedula || ""
+);
+
+localStorage.setItem(
+"area",
+datos.perfil.area || ""
+);
+
+localStorage.setItem(
+"ciudad",
+datos.perfil.ciudad || ""
+);
+
+registros =
+datos.registros || [];
+
+localStorage.setItem(
+"registros",
+JSON.stringify(registros)
+);
+
+alert("Respaldo cargado correctamente");
+
+location.reload();
+
+};
+
+lector.readAsText(archivo);
+
+}
 window.onload = function(){
 
 document.getElementById("nombre").value =
