@@ -267,6 +267,22 @@ localStorage.setItem(
 JSON.stringify(registros)
 );
 
+window.onload = function(){
+
+document.getElementById("nombre").value =
+localStorage.getItem("nombre") || "";
+
+document.getElementById("cedula").value =
+localStorage.getItem("cedula") || "";
+
+document.getElementById("area").value =
+localStorage.getItem("area") || "";
+
+document.getElementById("ciudad").value =
+localStorage.getItem("ciudad") || "";
+
+}
+    
 cargarTabla();
 
 }
