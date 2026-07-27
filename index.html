@@ -1,8 +1,12 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Horas Extras OYM</title>
 
 <style>
@@ -558,6 +562,64 @@ location.reload();
 };
 
 lector.readAsText(archivo);
+
+}
+function exportarExcel(){
+
+let datosExcel = [];
+
+registros.forEach(r => {
+
+datosExcel.push({
+
+"Fecha": r.fecha,
+"Hora Inicio": r.inicio,
+"Hora Final": r.fin,
+"Tiempo Total": r.total,
+"Tipo": r.tipo,
+"Sitio": r.sitio,
+"Actividad": r.actividad
+
+});
+
+});
+
+const hoja =
+XLSX.utils.json_to_sheet(datosExcel);
+
+const libro =
+XLSX.utils.book_new();
+
+XLSX.utils.book_append_sheet(
+libro,
+hoja,
+"Horas Extras"
+);
+
+let fecha =
+new Date();
+
+let mes =
+String(fecha.getMonth()+1)
+.padStart(2,'0');
+
+let anio =
+fecha.getFullYear();
+
+let nombre =
+document.getElementById("nombre").value || "Empleado";
+
+let nombreArchivo =
+nombre +
+" - " +
+mes +
+anio +
+".xlsx";
+
+XLSX.writeFile(
+libro,
+nombreArchivo
+);
 
 }
 window.onload = function(){
