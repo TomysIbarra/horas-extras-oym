@@ -1,17 +1,19 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Horas Extras OYM</title>
 
 <style>
+
 body{
-    font-family: Arial;
-    max-width:900px;
+    font-family: Arial, sans-serif;
+    background:#f4f6f9;
+    max-width:1100px;
     margin:auto;
     padding:20px;
-    background:#f4f6f9;
 }
 
 .card{
@@ -21,30 +23,42 @@ body{
     margin-bottom:20px;
 }
 
-input,textarea{
+input, textarea, select{
     width:100%;
-    padding:8px;
+    padding:10px;
     margin-top:5px;
     margin-bottom:10px;
+    box-sizing:border-box;
 }
 
 button{
     background:#0066cc;
     color:white;
     border:none;
-    padding:10px;
+    padding:10px 15px;
     cursor:pointer;
+    border-radius:5px;
+}
+
+button:hover{
+    background:#0052a3;
 }
 
 table{
     width:100%;
-    border-collapse: collapse;
+    border-collapse:collapse;
 }
 
-th,td{
+th, td{
     border:1px solid #ddd;
     padding:8px;
 }
+
+th{
+    background:#0066cc;
+    color:white;
+}
+
 </style>
 
 </head>
@@ -84,11 +98,31 @@ Guardar Perfil
 <label>Hora Final</label>
 <input type="time" id="fin">
 
-<label>Sitio</label>
+<label>Tiempo Total</label>
+<input type="text" id="total" readonly>
+
+<label>Tipo</label>
+
+<select id="tipo">
+<option>Diurnas</option>
+<option>Nocturna</option>
+<option>Rec Ord. Nocturno</option>
+<option>Rec Diurno Dom Compensado</option>
+<option>Rec Noct. Dom Compensado</option>
+<option>Trabajo Ocasional Dom/Fest Diurno</option>
+<option>Trabajo Ocasional Dom/Fest Noct.</option>
+<option>Extra Dom/Fest Diurno</option>
+<option>Extra Dom/Fest Noct</option>
+</select>
+
+<label>Sitio de Trabajo</label>
 <input type="text" id="sitio" value="Cali">
 
 <label>Actividad</label>
-<textarea id="actividad">Diagnóstico, atención, escalación de incidentes de clientes externos.</textarea>
+
+<textarea id="actividad" rows="4">
+Diagnóstico, atención, escalación de incidentes de clientes externos.
+</textarea>
 
 <button onclick="agregarRegistro()">
 Agregar Registro
@@ -106,7 +140,9 @@ Agregar Registro
 <tr>
 <th>Fecha</th>
 <th>Inicio</th>
-<th>Fin</th>
+<th>Final</th>
+<th>Total</th>
+<th>Tipo</th>
 <th>Sitio</th>
 </tr>
 </thead>
@@ -124,31 +160,103 @@ JSON.parse(localStorage.getItem("registros")) || [];
 
 function guardarPerfil(){
 
-localStorage.setItem("nombre",
-document.getElementById("nombre").value);
+localStorage.setItem(
+"nombre",
+document.getElementById("nombre").value
+);
 
-localStorage.setItem("cedula",
-document.getElementById("cedula").value);
+localStorage.setItem(
+"cedula",
+document.getElementById("cedula").value
+);
 
-localStorage.setItem("area",
-document.getElementById("area").value);
+localStorage.setItem(
+"area",
+document.getElementById("area").value
+);
 
-localStorage.setItem("ciudad",
-document.getElementById("ciudad").value);
+localStorage.setItem(
+"ciudad",
+document.getElementById("ciudad").value
+);
 
 alert("Perfil guardado");
 
 }
 
+function calcularTiempo(){
+
+let inicio =
+document.getElementById("inicio").value;
+
+let fin =
+document.getElementById("fin").value;
+
+if(!inicio || !fin) return;
+
+let hInicio =
+new Date("2000-01-01 " + inicio);
+
+let hFin =
+new Date("2000-01-01 " + fin);
+
+if(hFin < hInicio){
+
+hFin.setDate(
+hFin.getDate()+1
+);
+
+}
+
+let diferencia =
+(hFin - hInicio) / 1000;
+
+let horas =
+Math.floor(diferencia / 3600);
+
+let minutos =
+Math.floor((diferencia % 3600)/60);
+
+document.getElementById("total").value =
+horas.toString().padStart(2,'0')
++ ":"
++
+minutos.toString().padStart(2,'0');
+
+}
+
+document
+.getElementById("inicio")
+.addEventListener("change",calcularTiempo);
+
+document
+.getElementById("fin")
+.addEventListener("change",calcularTiempo);
+
 function agregarRegistro(){
 
 const registro = {
 
-fecha: document.getElementById("fecha").value,
-inicio: document.getElementById("inicio").value,
-fin: document.getElementById("fin").value,
-sitio: document.getElementById("sitio").value,
-actividad: document.getElementById("actividad").value
+fecha:
+document.getElementById("fecha").value,
+
+inicio:
+document.getElementById("inicio").value,
+
+fin:
+document.getElementById("fin").value,
+
+total:
+document.getElementById("total").value,
+
+tipo:
+document.getElementById("tipo").value,
+
+sitio:
+document.getElementById("sitio").value,
+
+actividad:
+document.getElementById("actividad").value
 
 };
 
@@ -165,18 +273,20 @@ cargarTabla();
 
 function cargarTabla(){
 
-let tabla =
+const tabla =
 document.getElementById("tablaRegistros");
 
-tabla.innerHTML="";
+tabla.innerHTML = "";
 
-registros.forEach(r=>{
+registros.forEach(r => {
 
 tabla.innerHTML += `
 <tr>
 <td>${r.fecha}</td>
 <td>${r.inicio}</td>
 <td>${r.fin}</td>
+<td>${r.total}</td>
+<td>${r.tipo}</td>
 <td>${r.sitio}</td>
 </tr>
 `;
