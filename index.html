@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -44,6 +43,14 @@ button:hover{
     background:#0052a3;
 }
 
+.btn-delete{
+    background:#dc3545;
+}
+
+.btn-delete:hover{
+    background:#b02a37;
+}
+
 table{
     width:100%;
     border-collapse:collapse;
@@ -60,7 +67,6 @@ th{
 }
 
 </style>
-
 </head>
 
 <body>
@@ -139,6 +145,7 @@ Agregar Registro
 <th>Total</th>
 <th>Tipo</th>
 <th>Sitio</th>
+<th>Acciones</th>
 </tr>
 </thead>
 
@@ -267,6 +274,23 @@ cargarTabla();
 
 }
 
+function eliminarRegistro(indice){
+
+if(confirm("¿Desea eliminar este registro?")){
+
+registros.splice(indice,1);
+
+localStorage.setItem(
+"registros",
+JSON.stringify(registros)
+);
+
+cargarTabla();
+
+}
+
+}
+
 function cargarTabla(){
 
 const tabla =
@@ -274,7 +298,7 @@ document.getElementById("tablaRegistros");
 
 tabla.innerHTML = "";
 
-registros.forEach(r => {
+registros.forEach((r,index) => {
 
 tabla.innerHTML += `
 <tr>
@@ -284,6 +308,13 @@ tabla.innerHTML += `
 <td>${r.total}</td>
 <td>${r.tipo}</td>
 <td>${r.sitio}</td>
+<td>
+<button
+class="btn-delete"
+onclick="eliminarRegistro(${index})">
+🗑️
+</button>
+</td>
 </tr>
 `;
 
