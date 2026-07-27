@@ -72,11 +72,8 @@ th{
 <h2>Datos Personales</h2>
 
 <input id="nombre" placeholder="Nombre">
-
 <input id="cedula" placeholder="Cédula">
-
 <input id="area" placeholder="Área">
-
 <input id="ciudad" placeholder="Ciudad">
 
 <button onclick="guardarPerfil()">
@@ -120,9 +117,7 @@ Guardar Perfil
 
 <label>Actividad</label>
 
-<textarea id="actividad" rows="4">
-Diagnóstico, atención, escalación de incidentes de clientes externos.
-</textarea>
+<textarea id="actividad" rows="4">Diagnóstico, atención, escalación de incidentes de clientes externos.</textarea>
 
 <button onclick="agregarRegistro()">
 Agregar Registro
@@ -215,11 +210,12 @@ let horas =
 Math.floor(diferencia / 3600);
 
 let minutos =
-Math.floor((diferencia % 3600)/60);
+Math.floor((diferencia % 3600) / 60);
 
 document.getElementById("total").value =
 horas.toString().padStart(2,'0')
-+ ":"
++
+":"
 +
 minutos.toString().padStart(2,'0');
 
@@ -227,11 +223,11 @@ minutos.toString().padStart(2,'0');
 
 document
 .getElementById("inicio")
-.addEventListener("change",calcularTiempo);
+.addEventListener("change", calcularTiempo);
 
 document
 .getElementById("fin")
-.addEventListener("change",calcularTiempo);
+.addEventListener("change", calcularTiempo);
 
 function agregarRegistro(){
 
@@ -267,22 +263,6 @@ localStorage.setItem(
 JSON.stringify(registros)
 );
 
-window.onload = function(){
-
-document.getElementById("nombre").value =
-localStorage.getItem("nombre") || "";
-
-document.getElementById("cedula").value =
-localStorage.getItem("cedula") || "";
-
-document.getElementById("area").value =
-localStorage.getItem("area") || "";
-
-document.getElementById("ciudad").value =
-localStorage.getItem("ciudad") || "";
-
-}
-    
 cargarTabla();
 
 }
@@ -311,7 +291,23 @@ tabla.innerHTML += `
 
 }
 
+window.onload = function(){
+
+document.getElementById("nombre").value =
+localStorage.getItem("nombre") || "";
+
+document.getElementById("cedula").value =
+localStorage.getItem("cedula") || "";
+
+document.getElementById("area").value =
+localStorage.getItem("area") || "";
+
+document.getElementById("ciudad").value =
+localStorage.getItem("ciudad") || "";
+
 cargarTabla();
+
+};
 
 </script>
 
