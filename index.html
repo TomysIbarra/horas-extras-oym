@@ -47,8 +47,8 @@ button:hover{
     background:#dc3545;
 }
 
-.btn-delete:hover{
-    background:#b02a37;
+.btn-edit{
+    background:#f39c12;
 }
 
 table{
@@ -153,12 +153,24 @@ Agregar Registro
 
 </table>
 
+<br>
+
+<h3 id="totalRegistros">
+Total Registros: 0
+</h3>
+
+<h3 id="totalHoras">
+Total Horas: 00:00
+</h3>
+
 </div>
 
 <script>
 
 let registros =
 JSON.parse(localStorage.getItem("registros")) || [];
+
+let editandoIndice = -1;
 
 function guardarPerfil(){
 
@@ -263,14 +275,60 @@ document.getElementById("actividad").value
 
 };
 
+if(editandoIndice >= 0){
+
+registros[editandoIndice] = registro;
+
+editandoIndice = -1;
+
+}else{
+
 registros.push(registro);
+
+}
 
 localStorage.setItem(
 "registros",
 JSON.stringify(registros)
 );
 
+limpiarFormulario();
+
 cargarTabla();
+
+}
+
+function editarRegistro(indice){
+
+let r = registros[indice];
+
+document.getElementById("fecha").value =
+r.fecha;
+
+document.getElementById("inicio").value =
+r.inicio;
+
+document.getElementById("fin").value =
+r.fin;
+
+document.getElementById("total").value =
+r.total;
+
+document.getElementById("tipo").value =
+r.tipo;
+
+document.getElementById("sitio").value =
+r.sitio;
+
+document.getElementById("actividad").value =
+r.actividad;
+
+editandoIndice = indice;
+
+window.scrollTo({
+top:0,
+behavior:"smooth"
+});
 
 }
 
@@ -291,12 +349,23 @@ cargarTabla();
 
 }
 
+function limpiarFormulario(){
+
+document.getElementById("fecha").value = "";
+document.getElementById("inicio").value = "";
+document.getElementById("fin").value = "";
+document.getElementById("total").value = "";
+
+}
+
 function cargarTabla(){
 
 const tabla =
 document.getElementById("tablaRegistros");
 
 tabla.innerHTML = "";
+
+let minutosTotales = 0;
 
 registros.forEach((r,index) => {
 
@@ -309,16 +378,57 @@ tabla.innerHTML += `
 <td>${r.tipo}</td>
 <td>${r.sitio}</td>
 <td>
+
+<button
+class="btn-edit"
+onclick="editarRegistro(${index})">
+✏️
+</button>
+
 <button
 class="btn-delete"
 onclick="eliminarRegistro(${index})">
 🗑️
 </button>
+
 </td>
 </tr>
 `;
 
+let partes = r.total.split(":");
+
+let horas =
+parseInt(partes[0]) || 0;
+
+let minutos =
+parseInt(partes[1]) || 0;
+
+minutosTotales +=
+(horas * 60) + minutos;
+
 });
+
+let totalHoras =
+Math.floor(minutosTotales / 60);
+
+let totalMinutos =
+minutosTotales % 60;
+
+document.getElementById(
+"totalRegistros"
+).innerText =
+"Total Registros: " + registros.length;
+
+document.getElementById(
+"totalHoras"
+).innerText =
+"Total Horas: "
++
+totalHoras.toString().padStart(2,'0')
++
+":"
++
+totalMinutos.toString().padStart(2,'0');
 
 }
 
