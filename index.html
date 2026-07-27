@@ -655,48 +655,36 @@ datosExcel.push({
 "Tipo": r.tipo,
 "Sitio": r.sitio,
 "Actividad": r.actividad
-
 });
-
 });
-
 const hoja =
 XLSX.utils.json_to_sheet(datosExcel);
-
 const libro =
 XLSX.utils.book_new();
-
 XLSX.utils.book_append_sheet(
 libro,
 hoja,
 "Horas Extras"
 );
-
 let fecha =
 new Date();
-
 let mes =
 String(fecha.getMonth()+1)
 .padStart(2,'0');
-
 let anio =
 fecha.getFullYear();
-
 let nombre =
 document.getElementById("nombre").value || "Empleado";
-
 let nombreArchivo =
 nombre +
 " - " +
 mes +
 anio +
 ".xlsx";
-
 XLSX.writeFile(
 libro,
 nombreArchivo
 );
-
 }
 window.onload = function(){
 
