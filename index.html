@@ -2,7 +2,7 @@
 <html lang="es">
 
 <head>
-<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/8.5/xlsx.full.min.js
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -408,7 +408,6 @@ tabla.innerHTML += `
 <td>${r.sitio}</td>
 <td>${r.actividad}</td>
 <td>
-<td>
 
 <button
 class="btn-edit"
@@ -565,6 +564,80 @@ lector.readAsText(archivo);
 
 }
 function exportarExcel(){
+
+if(registros.length === 0){
+
+alert("No existen registros para exportar");
+return;
+
+}
+
+let datosExcel = [];
+
+registros.forEach(r => {
+
+let fechaFormateada = r.fecha;
+
+if(fechaFormateada){
+
+let partes = fechaFormateada.split("-");
+
+if(partes.length === 3){
+
+fechaFormateada =
+partes[2] + "/" +
+partes[1] + "/" +
+partes[0];
+
+}
+
+}
+
+datosExcel.push({
+
+"Fecha": fechaFormateada,
+"Hora Inicio": r.inicio,
+"Hora Final": r.fin,
+"Tiempo Total": r.total,
+"Tipo": r.tipo,
+"Sitio": r.sitio,
+"Actividad": r.actividad
+
+});
+
+});
+
+let ws =
+XLSX.utils.json_to_sheet(datosExcel);
+
+let wb =
+XLSX.utils.book_new();
+
+XLSX.utils.book_append_sheet(
+wb,
+ws,
+"Horas Extras"
+);
+
+let nombre =
+document.getElementById("nombre").value || "Empleado";
+
+let fechaActual =
+new Date();
+
+let mes =
+String(fechaActual.getMonth()+1)
+.padStart(2,"0");
+
+let anio =
+fechaActual.getFullYear();
+
+XLSX.writeFile(
+wb,
+nombre + " - " + mes + anio + ".xlsx"
+);
+
+}
 
 let datosExcel = [];
 
