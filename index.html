@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Horas Extras OYM</title>
+
+<style>
+body{
+    font-family: Arial;
+    max-width:900px;
+    margin:auto;
+    padding:20px;
+    background:#f4f6f9;
+}
+
+.card{
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    margin-bottom:20px;
+}
+
+input,textarea{
+    width:100%;
+    padding:8px;
+    margin-top:5px;
+    margin-bottom:10px;
+}
+
+button{
+    background:#0066cc;
+    color:white;
+    border:none;
+    padding:10px;
+    cursor:pointer;
+}
+
+table{
+    width:100%;
+    border-collapse: collapse;
+}
+
+th,td{
+    border:1px solid #ddd;
+    padding:8px;
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>Horas Extras OYM</h1>
+
+<div class="card">
+
+<h2>Datos Personales</h2>
+
+<input id="nombre" placeholder="Nombre">
+
+<input id="cedula" placeholder="Cédula">
+
+<input id="area" placeholder="Área">
+
+<input id="ciudad" placeholder="Ciudad">
+
+<button onclick="guardarPerfil()">
+Guardar Perfil
+</button>
+
+</div>
+
+<div class="card">
+
+<h2>Nuevo Registro</h2>
+
+<label>Fecha</label>
+<input type="date" id="fecha">
+
+<label>Hora Inicio</label>
+<input type="time" id="inicio">
+
+<label>Hora Final</label>
+<input type="time" id="fin">
+
+<label>Sitio</label>
+<input type="text" id="sitio" value="Cali">
+
+<label>Actividad</label>
+<textarea id="actividad">Diagnóstico, atención, escalación de incidentes de clientes externos.</textarea>
+
+<button onclick="agregarRegistro()">
+Agregar Registro
+</button>
+
+</div>
+
+<div class="card">
+
+<h2>Registros</h2>
+
+<table>
+
+<thead>
+<tr>
+<th>Fecha</th>
+<th>Inicio</th>
+<th>Fin</th>
+<th>Sitio</th>
+</tr>
+</thead>
+
+<tbody id="tablaRegistros"></tbody>
+
+</table>
+
+</div>
+
+<script>
+
+let registros =
+JSON.parse(localStorage.getItem("registros")) || [];
+
+function guardarPerfil(){
+
+localStorage.setItem("nombre",
+document.getElementById("nombre").value);
+
+localStorage.setItem("cedula",
+document.getElementById("cedula").value);
+
+localStorage.setItem("area",
+document.getElementById("area").value);
+
+localStorage.setItem("ciudad",
+document.getElementById("ciudad").value);
+
+alert("Perfil guardado");
+
+}
+
+function agregarRegistro(){
+
+const registro = {
+
+fecha: document.getElementById("fecha").value,
+inicio: document.getElementById("inicio").value,
+fin: document.getElementById("fin").value,
+sitio: document.getElementById("sitio").value,
+actividad: document.getElementById("actividad").value
+
+};
+
+registros.push(registro);
+
+localStorage.setItem(
+"registros",
+JSON.stringify(registros)
+);
+
+cargarTabla();
+
+}
+
+function cargarTabla(){
+
+let tabla =
+document.getElementById("tablaRegistros");
+
+tabla.innerHTML="";
+
+registros.forEach(r=>{
+
+tabla.innerHTML += `
+<tr>
+<td>${r.fecha}</td>
+<td>${r.inicio}</td>
+<td>${r.fin}</td>
+<td>${r.sitio}</td>
+</tr>
+`;
+
+});
+
+}
+
+cargarTabla();
+
+</script>
+
+</body>
+</html>
