@@ -1,666 +1,509 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-<script 
-    src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js">    
-</script>
-
-<meta charset="UTF-8">
-    
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Horas Extras OYM</title>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Horas Extras y Recargos - Nómina Colombia</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SheetJS (xlsx) para Exportar Excel -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
-        
-body{
-    font-family: Arial, sans-serif;
-    background:#f4f6f9;
-    max-width:1100px;
-    margin:auto;
-    padding:20px;
-}
-
-.card{
-    background:white;
-    padding:20px;
-    border-radius:10px;
-    margin-bottom:20px;
-}
-
-input, textarea, select{
-    width:100%;
-    padding:10px;
-    margin-top:5px;
-    margin-bottom:10px;
-    box-sizing:border-box;
-}
-
-button{
-    background:#0066cc;
-    color:white;
-    border:none;
-    padding:10px 15px;
-    cursor:pointer;
-    border-radius:5px;
-}
-    
-button:hover{
-    background:#0052a3;
-}
-
-.btn-delete{
-    background:#dc3545;
-}
-
-.btn-edit{
-    background:#f39c12;
-}
-
-table{
-    width:100%;
-    border-collapse:collapse;
-}
-
-th, td{
-    border:1px solid #ddd;
-    padding:8px;
-}
-
-th{
-    background:#0066cc;
-    color:white;
-}
-
-</style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
 </head>
-
-<body>
-
-<h1>Horas Extras OYM</h1>
-
-<div class="card">
-
-<h2>Datos Personales</h2>
-
-<input id="nombre" placeholder="Nombre">
-<input id="cedula" placeholder="Cédula">
-<input id="area" placeholder="Área">
-<input id="ciudad" placeholder="Ciudad">
-
-<button onclick="guardarPerfil()">
-Guardar Perfil
-</button>
-
-</div>
-
-<div class="card">
-
-<h2>Nuevo Registro</h2>
-
-<label>Fecha</label>
-<input type="date" id="fecha">
-
-<label>Hora Inicio</label>
-<input type="time" id="inicio">
-
-<label>Hora Final</label>
-<input type="time" id="fin">
-
-<label>Tiempo Total</label>
-<input type="text" id="total" readonly>
-
-<label>Tipo</label>
-
-<select id="tipo">
-<option>Diurnas</option>
-<option>Nocturna</option>
-<option>Rec Ord. Nocturno</option>
-<option>Rec Diurno Dom Compensado</option>
-<option>Rec Noct. Dom Compensado</option>
-<option>Trabajo Ocasional Dom/Fest Diurno</option>
-<option>Trabajo Ocasional Dom/Fest Noct.</option>
-<option>Extra Dom/Fest Diurno</option>
-<option>Extra Dom/Fest Noct</option>
-</select>
-
-<label>Sitio de Trabajo</label>
-<input type="text" id="sitio" value="Cali">
-
-<label>Actividad</label>
-
-<textarea id="actividad" rows="4">Diagnóstico, atención, escalación de incidentes de clientes externos.</textarea>
-
-<button onclick="agregarRegistro()">
-Agregar Registro
-</button>
-
-</div>
-
-<div class="card">
-
-<h2>Registros</h2>
-
-<table>
-
-<thead>
-<tr>
-<th>Fecha</th>
-<th>Inicio</th>
-<th>Final</th>
-<th>Total</th>
-<th>Tipo</th>
-<th>Sitio</th>
-<th>Actividad</th>
-<th>Acciones</th>
-</tr>
-</thead>
-
-<tbody id="tablaRegistros"></tbody>
-
-</table>
-
-<br>
-
-<h3 id="totalRegistros">
-Total Registros: 0
-</h3>
-
-    <h3 id="totalHoras">
-Total Horas: 00:00
-</h3>
-
-<br>
-
-<button onclick="exportarRespaldo()">
-📁 Exportar Respaldo
-</button>
-
-<input
-type="file"
-id="archivoRespaldo"
-style="display:none"
-onchange="importarRespaldo(event)">
-
-<button onclick="document.getElementById('archivoRespaldo').click()">
-📂 Importar Respaldo
-</button>
-
-<br><br>
-
-<button onclick="exportarExcel()">
-📈 Generar Excel
-</button>
-    
-</div>
-
-</div>
-
-<script>
-
-let registros =
-JSON.parse(localStorage.getItem("registros")) || [];
-
-let editandoIndice = -1;
-
-function guardarPerfil(){
-
-localStorage.setItem(
-"nombre",
-document.getElementById("nombre").value
-);
-
-localStorage.setItem(
-"cedula",
-document.getElementById("cedula").value
-);
-
-localStorage.setItem(
-"area",
-document.getElementById("area").value
-);
-
-localStorage.setItem(
-"ciudad",
-document.getElementById("ciudad").value
-);
-
-alert("Perfil guardado");
-
-}
-
-function calcularTiempo(){
-
-let inicio =
-document.getElementById("inicio").value;
-
-let fin =
-document.getElementById("fin").value;
-
-if(!inicio || !fin) return;
-
-let hInicio =
-new Date("2000-01-01 " + inicio);
-
-let hFin =
-new Date("2000-01-01 " + fin);
-
-if(hFin < hInicio){
-
-hFin.setDate(
-hFin.getDate()+1
-);
-
-}
-
-let diferencia =
-(hFin - hInicio) / 1000;
-
-let horas =
-Math.floor(diferencia / 3600);
-
-let minutos =
-Math.floor((diferencia % 3600) / 60);
-
-document.getElementById("total").value =
-horas.toString().padStart(2,'0')
-+
-":"
-+
-minutos.toString().padStart(2,'0');
-
-}
-
-document
-.getElementById("inicio")
-.addEventListener("change", calcularTiempo);
-
-document
-.getElementById("fin")
-.addEventListener("change", calcularTiempo);
-
-function agregarRegistro(){
-
-const registro = {
-
-fecha:
-document.getElementById("fecha").value,
-
-inicio:
-document.getElementById("inicio").value,
-
-fin:
-document.getElementById("fin").value,
-
-total:
-document.getElementById("total").value,
-
-tipo:
-document.getElementById("tipo").value,
-
-sitio:
-document.getElementById("sitio").value,
-
-actividad:
-document.getElementById("actividad").value
-
-};
-
-if(editandoIndice >= 0){
-
-registros[editandoIndice] = registro;
-
-editandoIndice = -1;
-
-}else{
-
-registros.push(registro);
-
-}
-
-localStorage.setItem(
-"registros",
-JSON.stringify(registros)
-);
-
-limpiarFormulario();
-
-cargarTabla();
-
-}
-
-function editarRegistro(indice){
-
-let r = registros[indice];
-
-document.getElementById("fecha").value =
-r.fecha;
-
-document.getElementById("inicio").value =
-r.inicio;
-
-document.getElementById("fin").value =
-r.fin;
-
-document.getElementById("total").value =
-r.total;
-
-document.getElementById("tipo").value =
-r.tipo;
-
-document.getElementById("sitio").value =
-r.sitio;
-
-document.getElementById("actividad").value =
-r.actividad;
-
-editandoIndice = indice;
-
-window.scrollTo({
-top:0,
-behavior:"smooth"
-});
-
-}
-
-function eliminarRegistro(indice){
-
-if(confirm("¿Desea eliminar este registro?")){
-
-registros.splice(indice,1);
-
-localStorage.setItem(
-"registros",
-JSON.stringify(registros)
-);
-
-cargarTabla();
-
-}
-
-}
-
-function limpiarFormulario(){
-
-document.getElementById("fecha").value = "";
-document.getElementById("inicio").value = "";
-document.getElementById("fin").value = "";
-document.getElementById("total").value = "";
-
-}
-
-function cargarTabla(){
-
-const tabla =
-document.getElementById("tablaRegistros");
-
-tabla.innerHTML = "";
-
-let minutosTotales = 0;
-
-registros.forEach((r,index) => {
-
-tabla.innerHTML += `
-<tr>
-<td>${r.fecha}</td>
-<td>${r.inicio}</td>
-<td>${r.fin}</td>
-<td>${r.total}</td>
-<td>${r.tipo}</td>
-<td>${r.sitio}</td>
-<td>${r.actividad}</td>
-<td>
-
-<button
-class="btn-edit"
-onclick="editarRegistro(${index})">
-✏️
-</button>
-
-<button
-class="btn-delete"
-onclick="eliminarRegistro(${index})">
-🗑️
-</button>
-
-</td>
-</tr>
-`;
-
-let partes = r.total.split(":");
-
-let horas =
-parseInt(partes[0]) || 0;
-
-let minutos =
-parseInt(partes[1]) || 0;
-
-minutosTotales +=
-(horas * 60) + minutos;
-
-});
-
-let totalHoras =
-Math.floor(minutosTotales / 60);
-
-let totalMinutos =
-minutosTotales % 60;
-
-document.getElementById(
-"totalRegistros"
-).innerText =
-"Total Registros: " + registros.length;
-
-document.getElementById(
-"totalHoras"
-).innerText =
-"Total Horas: "
-+
-totalHoras.toString().padStart(2,'0')
-+
-":"
-+
-totalMinutos.toString().padStart(2,'0');
-
-}
-function exportarRespaldo(){
-
-let datos = {
-
-perfil:{
-
-nombre:
-localStorage.getItem("nombre"),
-
-cedula:
-localStorage.getItem("cedula"),
-
-area:
-localStorage.getItem("area"),
-
-ciudad:
-localStorage.getItem("ciudad")
-
-},
-
-registros: registros
-
-};
-
-let contenido =
-JSON.stringify(datos,null,2);
-
-let blob =
-new Blob(
-[contenido],
-{type:"application/json"}
-);
-
-let enlace =
-document.createElement("a");
-
-enlace.href =
-URL.createObjectURL(blob);
-
-enlace.download =
-"horas_extras_respaldo.json";
-
-document.body.appendChild(enlace);
-
-enlace.click();
-
-document.body.removeChild(enlace);
-
-}
-
-function importarRespaldo(event){
-
-let archivo =
-event.target.files[0];
-
-if(!archivo)return;
-
-let lector =
-new FileReader();
-
-lector.onload = function(e){
-
-let datos =
-JSON.parse(e.target.result);
-
-localStorage.setItem(
-"nombre",
-datos.perfil.nombre || ""
-);
-
-localStorage.setItem(
-"cedula",
-datos.perfil.cedula || ""
-);
-
-localStorage.setItem(
-"area",
-datos.perfil.area || ""
-);
-
-localStorage.setItem(
-"ciudad",
-datos.perfil.ciudad || ""
-);
-
-registros =
-datos.registros || [];
-
-localStorage.setItem(
-"registros",
-JSON.stringify(registros)
-);
-
-alert("Respaldo cargado correctamente");
-
-location.reload();
-
-};
-
-lector.readAsText(archivo);
-
-}
-function exportarExcel(){
-
-if(registros.length === 0){
-
-alert("No existen registros para exportar");
-return;
-
-}
-
-let datosExcel = [];
-
-registros.forEach(r => {
-
-let fechaFormateada = r.fecha;
-
-if(fechaFormateada){
-
-let partes = fechaFormateada.split("-");
-
-if(partes.length === 3){
-
-fechaFormateada =
-partes[2] + "/" +
-partes[1] + "/" +
-partes[0];
-
-}
-
-}
-
-datosExcel.push({
-
-"Fecha": fechaFormateada,
-"Hora Inicio": r.inicio,
-"Hora Final": r.fin,
-"Tiempo Total": r.total,
-"Tipo": r.tipo,
-"Sitio": r.sitio,
-"Actividad": r.actividad
-
-});
-
-});
-
-let ws =
-XLSX.utils.json_to_sheet(datosExcel);
-
-let wb =
-XLSX.utils.book_new();
-
-XLSX.utils.book_append_sheet(
-wb,
-ws,
-"Horas Extras"
-);
-
-let nombre =
-document.getElementById("nombre").value || "Empleado";
-
-let fechaActual =
-new Date();
-
-let mes =
-String(fechaActual.getMonth()+1)
-.padStart(2,"0");
-
-let anio =
-fechaActual.getFullYear();
-
-XLSX.writeFile(
-wb,
-nombre + " - " + mes + anio + ".xlsx"
-);
-
-}
-
-window.onload = function(){
-
-document.getElementById("nombre").value =
-localStorage.getItem("nombre") || "";
-
-document.getElementById("cedula").value =
-localStorage.getItem("cedula") || "";
-
-document.getElementById("area").value =
-localStorage.getItem("area") || "";
-
-document.getElementById("ciudad").value =
-localStorage.getItem("ciudad") || "";
-
-cargarTabla();
-
-};
-
-</script>
-
+<body class="bg-slate-100 min-h-screen text-slate-800 pb-12">
+
+    <!-- Header / Navbar -->
+    <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="bg-blue-600 p-2.5 rounded-xl shadow-md">
+                    <i class="fa-solid fa-clock-rotate-left text-xl text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight">Portal de Recargos y Horas Extras</h1>
+                    <p class="text-xs text-slate-400">Generador de Planillas para Nómina (Colombia)</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button onclick="exportarExcel()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-4 py-2.5 rounded-lg shadow transition flex items-center gap-2 text-sm">
+                    <i class="fa-solid fa-file-excel text-base"></i> Exportar a Excel (.xlsx)
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- LADO IZQUIERDO: FORMULARIO -->
+        <div class="lg:col-span-5 space-y-6">
+
+            <!-- Card: Datos del Empleado y Período -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
+                    <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-user-gear text-blue-600"></i> Datos del Empleado
+                    </h2>
+                    <span class="text-xs bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full font-medium">Auto-guardado</span>
+                </div>
+                <div class="space-y-3.5">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Nombre Completo:</label>
+                        <input type="text" id="empNombre" oninput="guardarPerfil()" class="w-full text-sm border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Ej: Tomys Johan Ibarra Quiroz">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Cédula:</label>
+                            <input type="text" id="empCedula" oninput="guardarPerfil()" class="w-full text-sm border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Ej: 1047514723">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Área / Depto:</label>
+                            <input type="text" id="empArea" oninput="guardarPerfil()" class="w-full text-sm border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Ej: OYM">
+                        </div>
+                    </div>
+                    
+                    <div class="pt-2 border-t border-slate-100 grid grid-cols-3 gap-2">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Mes:</label>
+                            <select id="periodoMes" onchange="guardarPerfil()" class="w-full text-xs border border-slate-300 rounded-lg p-2 bg-white focus:ring-2 focus:ring-blue-500">
+                                <option value="Enero">Enero</option>
+                                <option value="Febrero">Febrero</option>
+                                <option value="Marzo">Marzo</option>
+                                <option value="Abril">Abril</option>
+                                <option value="Mayo">Mayo</option>
+                                <option value="Junio" selected>Junio</option>
+                                <option value="Julio">Julio</option>
+                                <option value="Agosto">Agosto</option>
+                                <option value="Septiembre">Septiembre</option>
+                                <option value="Octubre">Octubre</option>
+                                <option value="Noviembre">Noviembre</option>
+                                <option value="Diciembre">Diciembre</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Día Inicio:</label>
+                            <input type="number" id="periodoDiaIni" value="1" min="1" max="31" oninput="guardarPerfil()" class="w-full text-xs border border-slate-300 rounded-lg p-2">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Día Fin:</label>
+                            <input type="number" id="periodoDiaFin" value="30" min="1" max="31" oninput="guardarPerfil()" class="w-full text-xs border border-slate-300 rounded-lg p-2">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card: Registrar Turno / Recargo -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
+                    <h2 class="text-base font-bold text-slate-800 flex items-center gap-2" id="formTitle">
+                        <i class="fa-solid fa-circle-plus text-blue-600"></i> Registrar Recargo / Hora Extra
+                    </h2>
+                    <button id="btnCancelarEdit" onclick="cancelarEdicion()" class="hidden text-xs text-red-600 font-semibold hover:underline">
+                        Cancelar Edición
+                    </button>
+                </div>
+
+                <form id="registroForm" onsubmit="guardarRegistro(event)" class="space-y-3.5">
+                    <input type="hidden" id="editIndex" value="-1">
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Fecha del Recargo:</label>
+                            <input type="date" id="fecha" required class="w-full text-sm border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Sitio de Trabajo:</label>
+                            <input type="text" id="sitio" required placeholder="Ej: Cali" class="w-full text-sm border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Hora Inicio:</label>
+                            <input type="time" id="horaInicio" required class="w-full text-sm border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Hora Final:</label>
+                            <input type="time" id="horaFinal" required class="w-full text-sm border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Tipo de Recargo / Extra:</label>
+                        <select id="tipoRecargo" required class="w-full text-sm border border-slate-300 rounded-lg p-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            <option value="Diurnas">Diurnas</option>
+                            <option value="Nocturna">Nocturna</option>
+                            <option value="Rec Ord. Nocturno" selected>Rec Ord. Nocturno</option>
+                            <option value="Rec Diurno Dom Compensado">Rec Diurno Dom Compensado</option>
+                            <option value="Rec Noct. Dom Compensado">Rec Noct. Dom Compensado</option>
+                            <option value="Trabajo Ocasional Dom/Fest Diurno">Trabajo Ocasional Dom/Fest Diurno</option>
+                            <option value="Trabajo Ocasional Dom/Fest Noct.">Trabajo Ocasional Dom/Fest Noct.</option>
+                            <option value="Extra Dom/Fest Diurno">Extra Dom/Fest Diurno</option>
+                            <option value="Extra Dom/Fest Noct">Extra Dom/Fest Noct</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Actividad Realizada:</label>
+                        <textarea id="actividad" rows="2" required placeholder="Ej: Diagnóstico, atención, escalación de incidentes..." class="w-full text-sm border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+                    </div>
+
+                    <button type="submit" id="btnSubmit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl shadow transition flex justify-center items-center gap-2">
+                        <i class="fa-solid fa-floppy-disk"></i> Guardar Recargo
+                    </button>
+                </form>
+            </div>
+
+        </div>
+
+        <!-- LADO DERECHO: TABLA Y RESUMEN -->
+        <div class="lg:col-span-7 space-y-6">
+
+            <!-- Card Resumen Métricas -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
+                    <p class="text-xs text-slate-500 font-medium">Total Registros</p>
+                    <p class="text-2xl font-bold text-slate-800 mt-1" id="statTotalReg">0</p>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
+                    <p class="text-xs text-slate-500 font-medium">Total Horas</p>
+                    <p class="text-2xl font-bold text-blue-600 mt-1" id="statTotalHoras">0.0</p>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
+                    <p class="text-xs text-slate-500 font-medium">Rec. Nocturnos</p>
+                    <p class="text-2xl font-bold text-indigo-600 mt-1" id="statRecNoct">0</p>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
+                    <p class="text-xs text-slate-500 font-medium">Dominicales</p>
+                    <p class="text-2xl font-bold text-amber-600 mt-1" id="statDom">0</p>
+                </div>
+            </div>
+
+            <!-- Tabla de Registros -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-2 border-b border-slate-100">
+                    <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-list-check text-blue-600"></i> Historial del Mes
+                    </h2>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="exportarCopiaSeguridad()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg font-medium transition">
+                            <i class="fa-solid fa-download mr-1"></i> Respaldo
+                        </button>
+                        <button onclick="importarCopiaSeguridad()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg font-medium transition">
+                            <i class="fa-solid fa-upload mr-1"></i> Cargar
+                        </button>
+                        <button onclick="limpiarTodo()" class="text-xs bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded-lg font-medium transition">
+                            <i class="fa-solid fa-trash-can mr-1"></i> Borrar Todo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tabla -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                                <th class="p-2.5">#</th>
+                                <th class="p-2.5">Fecha</th>
+                                <th class="p-2.5">Horario</th>
+                                <th class="p-2.5 text-center">Horas</th>
+                                <th class="p-2.5">Tipo</th>
+                                <th class="p-2.5">Sitio</th>
+                                <th class="p-2.5 text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaCuerpo" class="divide-y divide-slate-100 text-slate-700">
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="sinDatos" class="text-center py-10 text-slate-400">
+                    <i class="fa-solid fa-folder-open text-4xl mb-2"></i>
+                    <p class="text-sm">No has registrado recargos este mes aún.</p>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <script>
+        let registros = [];
+
+        window.onload = function() {
+            cargarPerfil();
+            cargarRegistros();
+            document.getElementById('sitio').value = localStorage.getItem('empSitioDefault') || 'Cali';
+            document.getElementById('actividad').value = 'Diagnóstico, atención, escalación de incidentes de clientes.';
+        };
+
+        function guardarPerfil() {
+            const perfil = {
+                nombre: document.getElementById('empNombre').value,
+                cedula: document.getElementById('empCedula').value,
+                area: document.getElementById('empArea').value,
+                mes: document.getElementById('periodoMes').value,
+                diaIni: document.getElementById('periodoDiaIni').value,
+                diaFin: document.getElementById('periodoDiaFin').value
+            };
+            localStorage.setItem('perfilRecargos', JSON.stringify(perfil));
+        }
+
+        function cargarPerfil() {
+            const perfilGuardado = localStorage.getItem('perfilRecargos');
+            if (perfilGuardado) {
+                const p = JSON.parse(perfilGuardado);
+                document.getElementById('empNombre').value = p.nombre || 'Tomys Johan Ibarra Quiroz';
+                document.getElementById('empCedula').value = p.cedula || '1047514723';
+                document.getElementById('empArea').value = p.area || 'OYM';
+                document.getElementById('periodoMes').value = p.mes || 'Junio';
+                document.getElementById('periodoDiaIni').value = p.diaIni || 1;
+                document.getElementById('periodoDiaFin').value = p.diaFin || 30;
+            } else {
+                document.getElementById('empNombre').value = 'Tomys Johan Ibarra Quiroz';
+                document.getElementById('empCedula').value = '1047514723';
+                document.getElementById('empArea').value = 'OYM';
+            }
+        }
+
+        function cargarRegistros() {
+            const data = localStorage.getItem('registrosRecargos');
+            if (data) registros = JSON.parse(data);
+            renderizarTabla();
+        }
+
+        function calcularDiferenciaHoras(inicio, fin) {
+            let [h1, m1] = inicio.split(':').map(Number);
+            let [h2, m2] = fin.split(':').map(Number);
+            let min1 = h1 * 60 + m1;
+            let min2 = h2 * 60 + m2;
+            if (min2 <= min1) min2 += 24 * 60;
+            return parseFloat(((min2 - min1) / 60).toFixed(1));
+        }
+
+        function guardarRegistro(e) {
+            e.preventDefault();
+            const editIndex = parseInt(document.getElementById('editIndex').value);
+            const fecha = document.getElementById('fecha').value;
+            const sitio = document.getElementById('sitio').value;
+            const horaInicio = document.getElementById('horaInicio').value;
+            const horaFinal = document.getElementById('horaFinal').value;
+            const tipoRecargo = document.getElementById('tipoRecargo').value;
+            const actividad = document.getElementById('actividad').value;
+            const horas = calcularDiferenciaHoras(horaInicio, horaFinal);
+
+            const nuevoReg = { fecha, sitio, horaInicio, horaFinal, horas, tipoRecargo, actividad };
+
+            if (editIndex >= 0) {
+                registros[editIndex] = nuevoReg;
+                cancelarEdicion();
+            } else {
+                registros.push(nuevoReg);
+            }
+
+            registros.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+            localStorage.setItem('registrosRecargos', JSON.stringify(registros));
+            localStorage.setItem('empSitioDefault', sitio);
+
+            document.getElementById('registroForm').reset();
+            document.getElementById('sitio').value = sitio;
+            document.getElementById('actividad').value = actividad;
+
+            renderizarTabla();
+        }
+
+        function renderizarTabla() {
+            const tbody = document.getElementById('tablaCuerpo');
+            const sinDatos = document.getElementById('sinDatos');
+            tbody.innerHTML = '';
+
+            if (registros.length === 0) {
+                sinDatos.classList.remove('hidden');
+                actualizarStats(0, 0, 0, 0);
+                return;
+            } else {
+                sinDatos.classList.add('hidden');
+            }
+
+            let totalHoras = 0, countNoct = 0, countDom = 0;
+
+            registros.forEach((reg, index) => {
+                totalHoras += reg.horas;
+                if (reg.tipoRecargo.includes('Noct') || reg.tipoRecargo.includes('Nocturna')) countNoct++;
+                if (reg.tipoRecargo.includes('Dom') || reg.tipoRecargo.includes('Fest')) countDom++;
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 border-b border-slate-100 transition';
+                tr.innerHTML = `
+                    <td class="p-2.5 font-bold text-slate-400">${index + 1}</td>
+                    <td class="p-2.5 font-medium whitespace-nowrap">${reg.fecha}</td>
+                    <td class="p-2.5 whitespace-nowrap">${reg.horaInicio} - ${reg.horaFinal}</td>
+                    <td class="p-2.5 text-center font-bold text-blue-600">${reg.horas}h</td>
+                    <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700">${reg.tipoRecargo}</span></td>
+                    <td class="p-2.5 text-slate-500">${reg.sitio}</td>
+                    <td class="p-2.5 text-center whitespace-nowrap">
+                        <button onclick="editarRegistro(${index})" class="text-blue-600 hover:text-blue-800 mx-1 p-1" title="Editar"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="eliminarRegistro(${index})" class="text-red-500 hover:text-red-700 mx-1 p-1" title="Eliminar"><i class="fa-solid fa-trash-can"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            actualizarStats(registros.length, totalHoras.toFixed(1), countNoct, countDom);
+        }
+
+        function actualizarStats(total, horas, noct, dom) {
+            document.getElementById('statTotalReg').innerText = total;
+            document.getElementById('statTotalHoras').innerText = horas;
+            document.getElementById('statRecNoct').innerText = noct;
+            document.getElementById('statDom').innerText = dom;
+        }
+
+        function editarRegistro(index) {
+            const reg = registros[index];
+            document.getElementById('editIndex').value = index;
+            document.getElementById('fecha').value = reg.fecha;
+            document.getElementById('sitio').value = reg.sitio;
+            document.getElementById('horaInicio').value = reg.horaInicio;
+            document.getElementById('horaFinal').value = reg.horaFinal;
+            document.getElementById('tipoRecargo').value = reg.tipoRecargo;
+            document.getElementById('actividad').value = reg.actividad;
+
+            document.getElementById('formTitle').innerHTML = '<i class="fa-solid fa-pen-to-square text-amber-500"></i> Editando Recargo #' + (index + 1);
+            document.getElementById('btnSubmit').className = 'w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-3 rounded-xl shadow transition flex justify-center items-center gap-2';
+            document.getElementById('btnSubmit').innerHTML = '<i class="fa-solid fa-check"></i> Actualizar Recargo';
+            document.getElementById('btnCancelarEdit').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function cancelarEdicion() {
+            document.getElementById('editIndex').value = "-1";
+            document.getElementById('registroForm').reset();
+            document.getElementById('formTitle').innerHTML = '<i class="fa-solid fa-circle-plus text-blue-600"></i> Registrar Recargo / Hora Extra';
+            document.getElementById('btnSubmit').className = 'w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl shadow transition flex justify-center items-center gap-2';
+            document.getElementById('btnSubmit').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Recargo';
+            document.getElementById('btnCancelarEdit').classList.add('hidden');
+        }
+
+        function eliminarRegistro(index) {
+            if (confirm('¿Estás seguro de eliminar este registro?')) {
+                registros.splice(index, 1);
+                localStorage.setItem('registrosRecargos', JSON.stringify(registros));
+                renderizarTabla();
+            }
+        }
+
+        function limpiarTodo() {
+            if (confirm('¿Deseas eliminar TODOS los registros guardados del mes?')) {
+                registros = [];
+                localStorage.removeItem('registrosRecargos');
+                renderizarTabla();
+            }
+        }
+
+        function exportarCopiaSeguridad() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(registros));
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href", dataStr);
+            dlAnchorElem.setAttribute("download", `Respaldo_Recargos_${document.getElementById('periodoMes').value}.json`);
+            dlAnchorElem.click();
+        }
+
+        function importarCopiaSeguridad() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'application/json';
+            input.onchange = e => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.readAsText(file, 'UTF-8');
+                reader.onload = readerEvent => {
+                    try {
+                        registros = JSON.parse(readerEvent.target.result);
+                        localStorage.setItem('registrosRecargos', JSON.stringify(registros));
+                        renderizarTabla();
+                        alert('Copia de respaldo cargada con éxito.');
+                    } catch (err) { alert('Error al leer el archivo de respaldo.'); }
+                }
+            }
+            input.click();
+        }
+
+        function exportarExcel() {
+            if (registros.length === 0) {
+                alert('No hay datos guardados para exportar.');
+                return;
+            }
+
+            const nombre = document.getElementById('empNombre').value || 'Empleado';
+            const cedula = document.getElementById('empCedula').value || '';
+            const area = document.getElementById('empArea').value || 'OYM';
+            const mes = document.getElementById('periodoMes').value || 'Junio';
+            const diaIni = document.getElementById('periodoDiaIni').value || '1';
+            const diaFin = document.getElementById('periodoDiaFin').value || '30';
+            const anio = new Date().getFullYear();
+
+            let data = [];
+            data.push(["RELACION DE HORAS EXTRAS"]);
+            data.push([]);
+            data.push(["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "Area:", "", area]);
+            data.push(["", "", "Periodo a Liquidar:", "", "", "", mes, "", "", diaIni, "", "", "", mes, "", "", diaFin, "", "", anio]);
+            data.push([`Resumen de Horas Extras para ${area}`]);
+            
+            data.push([
+                "#", "Nombre del Empleado:", "Cedula del Empleado:", 
+                "Diurnas", "", "", "", 
+                "Nocturna", "", "", "", 
+                "Rec Ord. Nocturno", "", "", "", 
+                "Rec Diurno Dom Compensado ", "", "", "", 
+                "Rec Noct. Dom Compensado", "", "", "", 
+                "Trabajo Ocasional Dom/Fest Diurno", "", "", "", 
+                "Trabajo Ocasional Dom/Fest Noct.", "", "", "", 
+                "Extra Dom/Fest Diurno", "", "", "", 
+                "Extra Dom/Fest Noct"
+            ]);
+
+            data.push([
+                "", "", "", 
+                "Fecha (dd/mm/aa)", "", "", "", 
+                "Hora Inicio", "", "", 
+                "Hora Final", "", "", 
+                "Tiempo Total", "", "", 
+                "Tipo", "", "", "", 
+                "Sitio de Trabajo", "", "", "", 
+                "Actividad"
+            ]);
+
+            registros.forEach((reg, i) => {
+                data.push([
+                    (i + 1).toString(),
+                    nombre,
+                    cedula,
+                    reg.fecha, "", "", "",
+                    reg.horaInicio, "", "",
+                    reg.horaFinal, "", "",
+                    `${reg.horas}:00:00`, "", "",
+                    reg.tipoRecargo, "", "", "",
+                    reg.sitio, "", "", "",
+                    reg.actividad
+                ]);
+            });
+
+            data.push([]);
+            data.push([]);
+            data.push(["", "", nombre]);
+            data.push(["", "", "Nombre del trabajador y firma"]);
+
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Personal Directo ");
+
+            XLSX.writeFile(wb, `${nombre} - ${mes}${anio}.xlsx`);
+        }
+    </script>
 </body>
 </html>
