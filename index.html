@@ -494,46 +494,27 @@
                 "Actividad"
             ]);
 
-            // Columnas por tipo
-            const tiposCols = {
-                "Diurnas": 1,
-                "Nocturna": 2,
-                "Rec Ord. Nocturno": 3,
-                "Rec Diurno Dom Compensado": 4,
-                "Rec Noct. Dom Compensado": 5,
-                "Trabajo Ocasional Dom/Fest Diurno": 6,
-                "Trabajo Ocasional Dom/Fest Noct.": 7,
-                "Extra Dom/Fest Diurno": 8,
-                "Extra Dom/Fest Noct": 9
-            };
+            let sumaTotalHoras = 0;
 
             // Filas de Datos
             registros.forEach((reg) => {
-                let fila = new Array(10).fill("");
-                fila[0] = cedula;
-                
-                // Formatear Fecha
+                sumaTotalHoras += reg.horas;
                 const fechaFormateada = formatearFechaTexto(reg.fecha);
 
-                // Colocar la hora en la columna correspondiente
-                const colIdx = tiposCols[reg.tipoRecargo] || 3;
-                
-                // Generar los campos secundarios
                 data.push([
                     cedula,
                     fechaFormateada,
                     reg.horaInicio,
                     reg.horaFinal,
-                    `${reg.horas}:00`,
+                    reg.horas,
                     reg.tipoRecargo,
                     reg.sitio,
                     reg.actividad
                 ]);
             });
 
-            // Filas de separación y aviso
-            data.push([]);
-            data.push(["", "Inserte líneas arriba de este para mas registros."]);
+            // Fila con la sumatoria de Tiempo Total
+            data.push(["", "", "", "TOTAL HORAS:", sumaTotalHoras]);
             data.push([]);
             data.push([]);
 
