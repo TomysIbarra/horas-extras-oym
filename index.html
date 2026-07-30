@@ -460,19 +460,20 @@
 
             let data = [];
             
-            // Fila 0: Título principal en columna D
-            data.push(["", "", "", "RELACION DE HORAS EXTRAS"]);
+            // Fila 0: Título principal (Desplazado una columna para centrar)
+            data.push(["", "", "", "", "RELACION DE HORAS EXTRAS"]);
             data.push([]); // Fila 1 vacía
             
-            // Fila 2: Area en columnas F y G
-            data.push(["", "", "", "", "", "Area:", area]);
+            // Fila 2: Area (Desplazado para mantener alineación a la derecha)
+            data.push(["", "", "", "", "", "", "Area:", area]);
             
-            // Fila 3: Periodo a Liquidar (A: "Periodo a Liquidar:", B: mes, C: diaIni, D: mes, E: diaFin, F: anio)
+            // Fila 3: Periodo a Liquidar 
             data.push(["Periodo a Liquidar:", mes, diaIni, mes, diaFin, anio]);
             data.push([]); // Fila 4 vacía
 
-            // Fila 5: Encabezados de la tabla
+            // Fila 5: Encabezados de la tabla (¡NUEVO ENCABEZADO AGREGADO AQUÍ!)
             data.push([
+                "Nombre del Empleado",
                 "Cedula del Empleado", 
                 "Fecha (dd/mm/aa)", 
                 "Hora Inicio", 
@@ -490,7 +491,9 @@
                 sumaTotalHoras += reg.horas;
                 const fechaFormateada = formatearFechaTexto(reg.fecha);
 
+                // ¡VARIABLE nombre AGREGADA AL INICIO DE LA FILA!
                 data.push([
+                    nombre,
                     cedula,
                     fechaFormateada,
                     reg.horaInicio,
@@ -502,17 +505,17 @@
                 ]);
             });
 
-            // Fila de Suma Total (Columna D: "TOTAL HORAS:", Columna E: sumaTotalHoras)
-            data.push(["", "", "", "TOTAL HORAS:", sumaTotalHoras]);
+            // Fila de Suma Total (Alineada bajo la nueva posición de 'Tiempo Total')
+            data.push(["", "", "", "", "", "TOTAL HORAS:", sumaTotalHoras]);
             data.push([]); // Fila vacía
             data.push([]); // Fila vacía
             data.push([]); // Fila vacía
             data.push([]); // Fila vacía
 
-            // Sección de Firmas (Fila 18, 19, 20 relativas)
-            data.push([nombre, "", "", "", "", "", "", ""]); // Fila 18: Nombre del trabajador en A
-            data.push(["___________________________________", "", "", "", "___________________________________", "", "", ""]); // Fila 19: Líneas
-            data.push(["Nombre del trabajador y firma del trabajador", "", "", "", "Nombre del trabajador y firma del autorizado", "", "", ""]); // Fila 20: Títulos de firma
+            // Sección de Firmas (Ajustada para compensar la columna extra)
+            data.push([nombre, "", "", "", "", "", "", "", ""]); 
+            data.push(["___________________________________", "", "", "", "", "___________________________________", "", "", ""]); 
+            data.push(["Nombre del trabajador y firma del trabajador", "", "", "", "", "Nombre del trabajador y firma del autorizado", "", "", ""]); 
 
             const ws = XLSX.utils.aoa_to_sheet(data);
 
