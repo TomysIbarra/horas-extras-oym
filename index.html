@@ -460,18 +460,18 @@
 
             let data = [];
             
-            // Fila 0: Título principal
+            // Fila 0: Título principal en columna D
             data.push(["", "", "", "RELACION DE HORAS EXTRAS"]);
-            data.push([]);
+            data.push([]); // Fila 1 vacía
             
-            // Fila 2: Area
+            // Fila 2: Area en columnas F y G
             data.push(["", "", "", "", "", "Area:", area]);
             
-            // Fila 3: Periodo
+            // Fila 3: Periodo a Liquidar (A: "Periodo a Liquidar:", B: mes, C: diaIni, D: mes, E: diaFin, F: anio)
             data.push(["Periodo a Liquidar:", mes, diaIni, mes, diaFin, anio]);
-            data.push([]);
+            data.push([]); // Fila 4 vacía
 
-            // Fila 5: Encabezados directos de la tabla (Eliminada la fila horizontal de tipos)
+            // Fila 5: Encabezados de la tabla
             data.push([
                 "Cedula del Empleado", 
                 "Fecha (dd/mm/aa)", 
@@ -502,17 +502,17 @@
                 ]);
             });
 
-            // Fila con la sumatoria de Tiempo Total
+            // Fila de Suma Total (Columna D: "TOTAL HORAS:", Columna E: sumaTotalHoras)
             data.push(["", "", "", "TOTAL HORAS:", sumaTotalHoras]);
-            data.push([]);
-            data.push([]);
-            data.push(["Inserte líneas arriba de este para mas registros."]);
-            data.push([]);
+            data.push([]); // Fila vacía
+            data.push([]); // Fila vacía
+            data.push([]); // Fila vacía
+            data.push([]); // Fila vacía
 
-            // Sección de Firmas
-            data.push(["", nombre, "", "", "", ""]);
-            data.push(["___________________________________", "", "", "", "___________________________________", ""]);
-            data.push(["Nombre del trabajador y firma del trabajador", "", "", "", "Nombre del trabajador y firma del autorizado", ""]);
+            // Sección de Firmas (Fila 18, 19, 20 relativas)
+            data.push([nombre, "", "", "", "", "", "", ""]); // Fila 18: Nombre del trabajador en A
+            data.push(["___________________________________", "", "", "", "___________________________________", "", "", ""]); // Fila 19: Líneas
+            data.push(["Nombre del trabajador y firma del trabajador", "", "", "", "Nombre del trabajador y firma del autorizado", "", "", ""]); // Fila 20: Títulos de firma
 
             const ws = XLSX.utils.aoa_to_sheet(data);
 
@@ -527,7 +527,7 @@
                 });
             });
 
-            // Aplicar ancho mínimo cómodo y máximo para textos largos
+            // Aplicar ancho cómodo y seguro
             ws['!cols'] = colWidths.map(w => ({ wch: Math.min(Math.max(w + 3, 12), 45) }));
 
             const wb = XLSX.utils.book_new();
