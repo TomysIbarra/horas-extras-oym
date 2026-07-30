@@ -7,7 +7,7 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-fontawesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- SheetJS (xlsx) para Exportar Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
@@ -124,12 +124,10 @@
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Hora Inicio:</label>
-                            <!-- AQUI SE AÑADIÓ value="00:00" -->
                             <input type="time" id="horaInicio" value="00:00" required class="w-full text-sm border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Hora Final:</label>
-                            <!-- AQUI SE AÑADIÓ value="00:00" -->
                             <input type="time" id="horaFinal" value="00:00" required class="w-full text-sm border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none">
                         </div>
                     </div>
@@ -462,18 +460,18 @@
 
             let data = [];
             
-            // Fila 1: Título
+            // Fila 0: Título
             data.push(["", "", "", "RELACION DE HORAS EXTRAS"]);
             data.push([]);
             
-            // Fila 3: Area
+            // Fila 2: Area
             data.push(["", "", "", "", "", "Area:", area]);
             
-            // Fila 4: Periodo
+            // Fila 3: Periodo
             data.push(["Periodo a Liquidar:", mes, diaIni, mes, diaFin, anio]);
             data.push([]);
 
-            // Fila 6: Encabezados Superiores
+            // Fila 5: Encabezados Superiores
             data.push([
                 "Cedula del Empleado:", 
                 "Diurnas", 
@@ -487,7 +485,7 @@
                 "Extra Dom/Fest Noct"
             ]);
 
-            // Fila 7: Sub-encabezados
+            // Fila 6: Sub-encabezados
             data.push([
                 "", 
                 "Fecha (dd/mm/aa)", 
@@ -522,14 +520,30 @@
             data.push(["", "", "", "TOTAL HORAS:", sumaTotalHoras]);
             data.push([]);
             data.push([]);
+            data.push(["Inserte líneas arriba de este para mas registros."]);
             data.push([]);
 
-            // Sección de Firmas Parejas
+            // Sección de Firmas
             data.push(["", nombre, "", "", "", ""]);
             data.push(["___________________________________", "", "", "", "___________________________________", ""]);
             data.push(["Nombre del trabajador y firma del trabajador", "", "", "", "Nombre del trabajador y firma del autorizado", ""]);
 
             const ws = XLSX.utils.aoa_to_sheet(data);
+
+            // AUTO-AJUSTE DINÁMICO DE ANCHO DE COLUMNAS
+            const colWidths = [];
+            data.forEach(row => {
+                row.forEach((val, colIdx) => {
+                    const len = val ? String(val).length : 10;
+                    if (!colWidths[colIdx] || len > colWidths[colIdx]) {
+                        colWidths[colIdx] = len;
+                    }
+                });
+            });
+
+            // Aplicar un ancho mínimo cómodo (mínimo 15 caracteres, máximo 50 para celdas largas como Actividad)
+            ws['!cols'] = colWidths.map(w => ({ wch: Math.min(Math.max(w + 3, 12), 45) }));
+
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Personal Directo");
 
