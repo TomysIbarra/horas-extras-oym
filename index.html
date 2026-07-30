@@ -75,8 +75,8 @@
                                 <option value="Marzo">Marzo</option>
                                 <option value="Abril">Abril</option>
                                 <option value="Mayo">Mayo</option>
-                                <option value="Junio" selected>Junio</option>
-                                <option value="Julio">Julio</option>
+                                <option value="Junio">Junio</option>
+                                <option value="Julio" selected>Julio</option>
                                 <option value="Agosto">Agosto</option>
                                 <option value="Septiembre">Septiembre</option>
                                 <option value="Octubre">Octubre</option>
@@ -90,7 +90,7 @@
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Día Fin:</label>
-                            <input type="number" id="periodoDiaFin" value="30" min="1" max="31" oninput="guardarPerfil()" class="w-full text-xs border border-slate-300 rounded-lg p-2">
+                            <input type="number" id="periodoDiaFin" value="31" min="1" max="31" oninput="guardarPerfil()" class="w-full text-xs border border-slate-300 rounded-lg p-2">
                         </div>
                     </div>
                 </div>
@@ -260,9 +260,9 @@
                 document.getElementById('empNombre').value = p.nombre || '';
                 document.getElementById('empCedula').value = p.cedula || '';
                 document.getElementById('empArea').value = p.area || '';
-                document.getElementById('periodoMes').value = p.mes || 'Junio';
+                document.getElementById('periodoMes').value = p.mes || 'Julio';
                 document.getElementById('periodoDiaIni').value = p.diaIni || 1;
-                document.getElementById('periodoDiaFin').value = p.diaFin || 30;
+                document.getElementById('periodoDiaFin').value = p.diaFin || 31;
             }
         }
 
@@ -453,14 +453,14 @@
             const nombre = document.getElementById('empNombre').value || '';
             const cedula = document.getElementById('empCedula').value || '';
             const area = document.getElementById('empArea').value || 'OYM';
-            const mes = document.getElementById('periodoMes').value || 'Junio';
+            const mes = document.getElementById('periodoMes').value || 'Julio';
             const diaIni = document.getElementById('periodoDiaIni').value || '1';
-            const diaFin = document.getElementById('periodoDiaFin').value || '30';
+            const diaFin = document.getElementById('periodoDiaFin').value || '31';
             const anio = new Date().getFullYear();
 
             let data = [];
             
-            // Fila 0: Título
+            // Fila 0: Título principal
             data.push(["", "", "", "RELACION DE HORAS EXTRAS"]);
             data.push([]);
             
@@ -471,23 +471,9 @@
             data.push(["Periodo a Liquidar:", mes, diaIni, mes, diaFin, anio]);
             data.push([]);
 
-            // Fila 5: Encabezados Superiores
+            // Fila 5: Encabezados directos de la tabla (Eliminada la fila horizontal de tipos)
             data.push([
-                "Cedula del Empleado:", 
-                "Diurnas", 
-                "Nocturna", 
-                "Rec Ord. Nocturno", 
-                "Rec Diurno Dom Compensado", 
-                "Rec Noct. Dom Compensado", 
-                "Trabajo Ocasional Dom/Fest Diurno", 
-                "Trabajo Ocasional Dom/Fest Noct.", 
-                "Extra Dom/Fest Diurno", 
-                "Extra Dom/Fest Noct"
-            ]);
-
-            // Fila 6: Sub-encabezados
-            data.push([
-                "", 
+                "Cedula del Empleado", 
                 "Fecha (dd/mm/aa)", 
                 "Hora Inicio", 
                 "Hora Final", 
@@ -541,7 +527,7 @@
                 });
             });
 
-            // Aplicar un ancho mínimo cómodo (mínimo 15 caracteres, máximo 50 para celdas largas como Actividad)
+            // Aplicar ancho mínimo cómodo y máximo para textos largos
             ws['!cols'] = colWidths.map(w => ({ wch: Math.min(Math.max(w + 3, 12), 45) }));
 
             const wb = XLSX.utils.book_new();
